@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/blog/v1/create-blog", (req, res) => {
-  const { blogTitle, blogContent, blogAuthor } = req.body;
+  const { blogTitle, blogContent, blogAuthor, blogImage } = req.body;
   if (!blogTitle && !blogAuthor && !blogContent)
     res.status(400).send({ error: `Invalid Arguments recived` });
 
@@ -23,6 +23,7 @@ app.post("/api/blog/v1/create-blog", (req, res) => {
       blogAuthor,
       blogContent,
       blogTitle,
+      blogImage
     })
     .then(() => {
       res.status(200).send({ message: true });
@@ -36,28 +37,30 @@ app.post("/api/blog/v1/create-blog", (req, res) => {
 app.get("/api/blog/v1/get-blog-info/:blogId", async (req, res) => {
   const { blogId } = req.params;
   try {
-    const blogInfo = await blogModel.findOne({ blogId });
-    if (!blogInfo) {
-      res.status(404).send({ error: `Blog not founded` });
-      return;
+    const blogInfo = await blogModel.findOne({ blogId: blogId });
+    if (!blogInfo || blogInfo.length == 0) {
+      res.status(404).send({ error: `Blog not found` });
+    } else {
+      res.status(200).send({
+        blogTitle: blogInfo.blogTitle,
+        blogContent: blogInfo.blogContent,
+        blogAuthor: blogInfo.blogAuthor,
+        blogImage: blogInfo.blogImage
+      });
     }
-    res.status(200).send({
-      blogTitle: blogInfo.blogTitle,
-      blogContent: blogInfo.blogContent,
-      blogAuthor: blogInfo.blogAuthor,
-    });
   } catch (error) {
-    res.send(500).send({ error: "Internal server error" });
-    return;
+    console.error(`Filename : ${__filename} : Error \n ${error}`);
+    res.status(500).send({ error: "Internal Server Error" });
   }
 });
+
 
 app.get("/api/blog/v1/get-all-blogs", async (req, res) => {
   console.log(req)
   const fetchedBlogs = await blogModel.find();
   if (!fetchedBlogs || fetchedBlogs.length == 0)
     res.status(404).send({
-      message: "No blog found",
+      "error": "No blog found",
     });
   fetchedBlogs.map((blog) => {
     res.send(

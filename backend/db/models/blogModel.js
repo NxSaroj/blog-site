@@ -18,6 +18,10 @@ const blogModel = new Schema({
         type: String,
         required: true
     },
+    blogImage: {
+        type: String,
+        required: true
+    },
     blogContent: {
         type: String,
         required: true
